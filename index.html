@@ -1,16 +1,39 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Lichess Spectator</title>
-    <link rel="stylesheet" href="./cg_base.css">
-    <link rel="stylesheet" href="./cg_theme.css">
-    <style>
-    </style>
-    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
-</head>
-<body>
+    <title>Norway 2017</title>
 
-    <script>
-    </script>
+    <link href="//lichess1.org/assets/stylesheets/piece/merida.css?v=1733" type="text/css" rel="stylesheet"/>
+    <link href="//lichess1.org/assets/stylesheets/common.css?v=1733" type="text/css" rel="stylesheet"/>
+    <link href="//lichess1.org/assets/stylesheets/board.css?v=1733" type="text/css" rel="stylesheet"/>
+    <style>
+        #games {
+            display: flex;
+        }
+        #games>div {
+            margin: 5px;
+        }
+    </style>
+</head>
+<body
+	class="base highlight auto metal Woodi dark"
+	style="width: 224px; height: 264px; overflow: hidden; background: none!important"
+	data-stream-url="/tv/feed">
+<div id='games'>
+{% for json in games_json %} 
+	<div>
+        <a href="/{{ json['game']['id'] }}" title="{{ json['player']['user']['id'] }} ({{ json['player']['rating'] }}) vs {{ json['opponent']['user']['id'] }} ({{ json['opponent']['rating'] }})" class="mini_board mini_board_{{ json['game']['id'] }} parse_fen is2d live live_{{ json['game']['id'] }} standard" data-live="{{ json['game']['id'] }}" data-color="white" data-fen="{{ json['game']['fen'] }}" data-lastmove="{{ json['game']['lastMove'] }}"><div class="cg-board-wrap"><div class="cg-board"></div></div></a>
+		<div class="vstext clearfix">
+            <div class="left">{{ json['player']['user']['id'] }} <br /> {{ json['player']['rating'] }}</div>
+            <div class="right">{{ json['opponent']['user']['id'] }} <br /> {{ json['opponent']['rating'] }}</div>
+			<div class="center"><span data-icon="p">? </span></div>
+		</div>
+	</div>
+{% end %}
+
+<script src="//lichess1.org/assets/javascripts/vendor/chessground.min.js?v=1733"></script>
+    
+<script src="//lichess1.org/assets/compiled/lichess.site.min.js?v=1733"></script>
+   
 </body>
 </html>
