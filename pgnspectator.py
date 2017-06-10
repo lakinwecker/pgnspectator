@@ -201,8 +201,8 @@ def broadcast(message):
 class IndexHandler(web.RequestHandler):
     def get(self):
         self.render("index.html", **{
-			"games_json": [game_message(game)['d'] for id, game in games.items()],
-		})
+            "games_json": [game_message(game)['d'] for id, game in games.items()],
+        })
 
 class SocketHandler(websocket.WebSocketHandler):
     def check_origin(self, origin):
