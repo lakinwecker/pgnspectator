@@ -21,6 +21,7 @@ import glob
 from io import StringIO
 import json
 import requests
+from tornado import gen
 from tornado import websocket, web, ioloop, httpclient
 import time
 
@@ -156,10 +157,12 @@ def process_pgn(contents):
         old_game = games[key]
         old_node = old_game.variations[0]
         new_node = new_game.variations[0]
-        while not old_node.is_end() and not new_node.is_end():
+        while True:
             if old_node.move.uci() != new_node.move.uci():
                 print("Corruption! Restart game: {}".format(key))
                 continue
+            if old_node.is_end() or new_node.is_end():
+                break
             old_node = old_node.variations[0]
             new_node = new_node.variations[0]
         if old_node.is_end() and new_node.is_end():
@@ -170,17 +173,22 @@ def process_pgn(contents):
             print(old_node, new_node)
             print("Corruption! old game is longer than new game!? {}".format(key))
             continue
-        while not new_node.is_end():
+        new_node = new_node.variations[0]
+        while True:
             print("New move in {}: {}".format(key, new_node.move.uci()))
             broadcast(move_message(new_node, type="fen"))
+            if new_node.is_end():
+                break
             new_node = new_node.variations[0]
         games[key] = new_game
 
+@gen.coroutine
 def update_pgns():
+    client = httpclient.AsyncHTTPClient()
     url = "{}?v={}".format(sys.argv[1], time.time())
-    print("GET: {}".format(url))
-    response = requests.get(url)
-    process_pgn(response.text)
+    print(".", end="", flush=True)
+    response = yield client.fetch(url)
+    process_pgn(response.body.decode("ISO-8859-1")) # TODO: pull this from the content-type
 
 already_processed = []
 def poll_files():
@@ -224,10 +232,8 @@ class SocketHandler(websocket.WebSocketHandler):
         if message['t'] == 'p':
             self.write_json({"t": "n"})
         if message['t'] == 'startWatching':
-            print("startWatching!!")
             ids = message['d'].split()
             for id in ids:
-                print(id)
                 game = games.get(id, None)
                 if game:
                     self.write_json(start_game_message(game))
